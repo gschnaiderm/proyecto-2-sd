@@ -1,1 +1,1 @@
-# proyecto-2-sd
+# Proyecto 2 - Sistemas Distribuidos
