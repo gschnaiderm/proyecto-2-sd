@@ -1,0 +1,24 @@
+syntax = "proto3";
+
+package noticias;
+
+// El formato de la noticia a recibir
+message Noticia {
+  int32 id_noticia = 1;
+  string titulo = 2;
+  int32 id_autor = 3;
+  string id_categoria = 4;
+  string texto = 5;
+  string fecha = 6;
+}
+
+// Lo que el servicio responde cuando termina de procesar
+message Respuesta {
+  bool exito = 1;
+  string mensaje = 2;
+}
+
+// El servicio que escucha peticiones
+service ReceptorNoticias {
+  rpc EnviarNoticia (Noticia) returns (Respuesta);
+}
