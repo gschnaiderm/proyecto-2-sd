@@ -18,11 +18,11 @@ COPY requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
 
 # 6. Copiamos el código de nuestro microservicio y las firmas de gRPC
-COPY src/ ./src/
+COPY *.py ./
 COPY protos/ ./protos/
 
 # 7. Informamos a Docker que este contenedor escuchará en el puerto 50051
 EXPOSE 50051
 
 # 8. El comando que se ejecutará cuando el contenedor arranque
-CMD ["python", "src/server.py"]
+CMD ["python", "server.py"]

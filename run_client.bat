@@ -13,6 +13,6 @@ if not exist ".venv" (
 echo Iniciando cliente de busqueda gRPC...
 :: Ejecutamos python directamente desde el entorno virtual pasando la ruta del script.
 :: Esto hace que use todas las librerias instaladas (grpc, protobuf) sin tener que activar el venv en la terminal.
-".venv\Scripts\python.exe" "news_search\src\client.py"
+".venv\Scripts\python.exe" "news_search\client.py"
 
 pause
