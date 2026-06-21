@@ -18,7 +18,7 @@ class ReceptorNoticiasServicer(noticias_pb2_grpc.ReceptorNoticiasServicer):
         print("Guardando en la base de datos...")
         try:
             conexion = psycopg2.connect(
-                host="localhost",      
+                host="host.docker.internal",      
                 database="noticias_db", 
                 user="postgres",       
                 password="admin"       
