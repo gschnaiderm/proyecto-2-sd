@@ -1,32 +1,29 @@
 # Contexto del Proyecto
 
 ## Estado General
-Este es el "Proyecto 2" para la materia Sistemas Distribuidos (2026). El sistema está diseñado en torno a una arquitectura de publicación y suscripción de noticias/novedades clasificadas por áreas/categorías. Actualmente el proyecto cuenta con la estructura inicial de base de datos relacional y configuración de contenedor PostgreSQL listos.
+Estamos desarrollando el Segundo Proyecto de la materia Sistemas Distribuidos (2026). El objetivo es crear un Consorcio de Noticias distribuido y tolerante a fallos usando gRPC y Docker Swarm.
+Actualmente hemos completado la implementación del microservicio asignado a Manuel Tauro: **"Buscar noticias con un descriptor"**.
 
 ## Arquitectura y Decisiones
-- **Base de Datos**: PostgreSQL 16 sobre Alpine Linux (configurado vía Docker).
-- **Esquema de Base de Datos**:
-  - `users`: Usuarios creadores y suscriptores del sistema.
-  - `areas`: Categorías/áreas temáticas gestionadas por un usuario.
-  - `subscriptions`: Relación intermedia de suscripciones de usuarios a áreas temáticas.
-  - `news`: Noticias publicadas por usuarios en áreas específicas.
-- **Estructura de Carpetas**:
+- **Servicio de Búsqueda:** Implementado en Python 3.11, con comunicación sincrónica mediante gRPC (puerto 50051). Contrato gRPC en `news_search/protos/news_search.proto`.
+- **Base de Datos:** PostgreSQL 16 Alpine centralizado, ejecutado en su propio contenedor (puerto 5432) con scripts de inicialización y datos de prueba.
+- **Estructura de Carpetas:**
   - `database/`: Contenedor y scripts SQL de inicialización.
-    - `Dockerfile`: Configuración del contenedor Postgres 16 Alpine con locale en español (`es_AR.utf8`).
-    - `scripts/`: Scripts de inicialización de esquema (`01-scheme.sql`) y datos de prueba (`02-test-data.sql`).
-  - Documentación de especificación técnica del proyecto (`Modelo.pdf`, `SegundoProyecto-2026 (1).pdf`).
+  - `news_search/`: Contiene todo lo relativo al servicio de búsqueda (código fuente en `src/`, firmas gRPC en `protos/`, Dockerfile y requirements.txt).
+  - `graphify-out/`: Único directorio en la raíz para la documentación visual de la arquitectura.
+- **Docker Compose:** Configurado en `docker-compose.yml` para levantar tanto la base de datos como el servicio de búsqueda localmente, utilizando variables de entorno parametrizadas con valores por defecto (ej. `DB_HOST=${DB_HOST:-database}`) para máxima portabilidad.
 
 ## Tareas Completadas (Recientes)
-- [x] Configuración del Dockerfile para el servicio de base de datos PostgreSQL 16.
-- [x] Diseño del esquema inicial de base de datos (tablas: `users`, `areas`, `subscriptions`, `news`).
-- [x] Configuración de datos ficticios de testeo para verificar llaves foráneas y flujos de inserción.
-- [x] Actualización del archivo `.gitignore` para permitir el seguimiento de `AIContext.md`.
+- [x] Limpieza de carpetas duplicadas de Graphify y archivos obsoletos.
+- [x] Aislamiento del servicio de búsqueda en el subdirectorio autocontenido `news_search/`.
+- [x] Configuración del Dockerfile en `news_search/` y vinculación en `docker-compose.yml`.
+- [x] Flexibilización de variables de conexión (`DB_HOST`, etc.) en Docker Compose.
+- [x] Verificación de la compilación y conectividad de los contenedores Docker locales.
 
 ## Próximos Pasos (TODO)
-- [ ] Implementar la API/servidor backend (ej. Go, Node/TypeScript, o Java) para interactuar con la base de datos distribuidamente.
-- [ ] Definir el protocolo de comunicación entre los nodos distribuidos (ej. gRPC, REST, o WebSockets).
-- [ ] Implementar la lógica de brokers de mensajería o publicación/suscripción (Pub/Sub).
-- [ ] Desarrollar clientes interactivos para probar la publicación y recepción de noticias en tiempo real.
+- [ ] Integrar el microservicio con el proxy reverso / balanceador de carga global del proyecto.
+- [ ] Configurar el despliegue final en la infraestructura Docker Swarm del grupo.
+- [ ] Coordinar con los compañeros para la unificación de los esquemas e interconexión de otros servicios.
 
 ## Problemas Abiertos o Notas
-- Asegurarse de levantar el contenedor Postgres exponiendo el puerto estándar `5432` y usar variables de entorno seguras para credenciales de acceso local.
+- La búsqueda realiza una coincidencia precisa por palabras, categorías o contenido usando el motor PostgreSQL Full-Text Search en español.
