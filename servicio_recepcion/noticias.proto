@@ -7,7 +7,7 @@ message Noticia {
   int32 id_noticia = 1;
   string titulo = 2;
   int32 id_autor = 3;
-  string id_categoria = 4;
+  int32 id_categoria = 4;
   string texto = 5;
   string fecha = 6;
 }
