@@ -3,7 +3,7 @@ version: '3.8'
 services:
   # 1. Base de datos PostgreSQL
   database:
-    build: ./DataBase
+    build: ./database
     image: db-consorcio:1.0
     ports:
       - "5432:5432"
@@ -14,15 +14,15 @@ services:
 
   # 2. Tu microservicio de búsqueda por descriptor
   news-search:
-    build: .
+    build: ./news_search
     image: news-search-service:1.0
     ports:
       - "50051:50051"
     environment:
-      - DB_HOST=database   # Nombre del servicio de arriba para que Docker resuelva la IP automáticamente
-      - DB_PORT=5432
-      - DB_NAME=postgres
-      - DB_USER=postgres
-      - DB_PASSWORD=postgres
+      - DB_HOST=${DB_HOST:-database}
+      - DB_PORT=${DB_PORT:-5432}
+      - DB_NAME=${DB_NAME:-postgres}
+      - DB_USER=${DB_USER:-postgres}
+      - DB_PASSWORD=${DB_PASSWORD:-postgres}
     depends_on:
       - database
