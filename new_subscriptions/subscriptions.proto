@@ -1,0 +1,44 @@
+syntax = "proto3";
+
+package subscriptions;
+
+// Servicio de suscripciones
+service SubscriptionService {
+  // Suscribe un usuario a un área
+  rpc Subscribe(SubscriptionRequest) returns (SubscriptionResponse);
+
+  // Desuscribe un usuario de un área
+  rpc Unsubscribe(SubscriptionRequest) returns (SubscriptionResponse);
+
+  // Devuelve todas las suscripciones de un usuario
+  rpc GetSubscriptions(UserRequest) returns (SubscriptionList);
+}
+
+// Solicitud con usuario y categoría (usada en Subscribe y Unsubscribe)
+message SubscriptionRequest {
+  int32 user_id = 1;
+  int32 category_id = 2;
+}
+
+// Respuesta genérica con mensaje y estado
+message SubscriptionResponse {
+  string message = 1;
+  bool success = 2;
+}
+
+// Solicitud con solo el ID de usuario (usada en GetSubscriptions)
+message UserRequest {
+  int32 user_id = 1;
+}
+
+// Información de un área/categoría
+message CategoryInfo {
+  int32 category_id = 1;
+  string name = 2;
+}
+
+// Lista de suscripciones de un usuario
+message SubscriptionList {
+  int32 user_id = 1;
+  repeated CategoryInfo subscriptions = 2;
+}
