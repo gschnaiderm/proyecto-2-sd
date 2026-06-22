@@ -13,7 +13,7 @@ def enviar_noticia_cliente():
     
     # El bloque 'with' abre el canal y garantiza que se cierre automáticamente
     # al terminar de usarse, liberando los recursos de red de la computadora.
-    with grpc.insecure_channel('localhost:50051') as canal:
+    with grpc.insecure_channel('localhost:50050') as canal:
         cliente = noticias_pb2_grpc.ReceptorNoticiasStub(canal)
         
         # Empaquetamos la noticia.

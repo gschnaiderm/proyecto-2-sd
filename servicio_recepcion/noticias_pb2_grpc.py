@@ -26,8 +26,7 @@ if _version_not_supported:
 
 
 class ReceptorNoticiasStub:
-    """El servicio que escucha peticiones
-    """
+    """Missing associated documentation comment in .proto file."""
 
     def __init__(self, channel):
         """Constructor.
@@ -43,8 +42,7 @@ class ReceptorNoticiasStub:
 
 
 class ReceptorNoticiasServicer:
-    """El servicio que escucha peticiones
-    """
+    """Missing associated documentation comment in .proto file."""
 
     def EnviarNoticia(self, request, context):
         """Missing associated documentation comment in .proto file."""
@@ -69,8 +67,7 @@ def add_ReceptorNoticiasServicer_to_server(servicer, server):
 
  # This class is part of an EXPERIMENTAL API.
 class ReceptorNoticias:
-    """El servicio que escucha peticiones
-    """
+    """Missing associated documentation comment in .proto file."""
 
     @staticmethod
     def EnviarNoticia(request,
@@ -89,6 +86,121 @@ class ReceptorNoticias:
             '/noticias.ReceptorNoticias/EnviarNoticia',
             noticias__pb2.Noticia.SerializeToString,
             noticias__pb2.Respuesta.FromString,
+            options,
+            channel_credentials,
+            insecure,
+            call_credentials,
+            compression,
+            wait_for_ready,
+            timeout,
+            metadata,
+            _registered_method=True)
+
+
+class ServicioNoticiasStub:
+    """Missing associated documentation comment in .proto file."""
+
+    def __init__(self, channel):
+        """Constructor.
+
+        Args:
+            channel: A grpc.Channel.
+        """
+        self.SuscribirASeccion = channel.unary_stream(
+                '/noticias.ServicioNoticias/SuscribirASeccion',
+                request_serializer=noticias__pb2.SuscripcionRequest.SerializeToString,
+                response_deserializer=noticias__pb2.Noticia.FromString,
+                _registered_method=True)
+        self.PublicarNoticia = channel.unary_unary(
+                '/noticias.ServicioNoticias/PublicarNoticia',
+                request_serializer=noticias__pb2.Noticia.SerializeToString,
+                response_deserializer=noticias__pb2.PublicacionResponse.FromString,
+                _registered_method=True)
+
+
+class ServicioNoticiasServicer:
+    """Missing associated documentation comment in .proto file."""
+
+    def SuscribirASeccion(self, request, context):
+        """Missing associated documentation comment in .proto file."""
+        context.set_code(grpc.StatusCode.UNIMPLEMENTED)
+        context.set_details('Method not implemented!')
+        raise NotImplementedError('Method not implemented!')
+
+    def PublicarNoticia(self, request, context):
+        """Missing associated documentation comment in .proto file."""
+        context.set_code(grpc.StatusCode.UNIMPLEMENTED)
+        context.set_details('Method not implemented!')
+        raise NotImplementedError('Method not implemented!')
+
+
+def add_ServicioNoticiasServicer_to_server(servicer, server):
+    rpc_method_handlers = {
+            'SuscribirASeccion': grpc.unary_stream_rpc_method_handler(
+                    servicer.SuscribirASeccion,
+                    request_deserializer=noticias__pb2.SuscripcionRequest.FromString,
+                    response_serializer=noticias__pb2.Noticia.SerializeToString,
+            ),
+            'PublicarNoticia': grpc.unary_unary_rpc_method_handler(
+                    servicer.PublicarNoticia,
+                    request_deserializer=noticias__pb2.Noticia.FromString,
+                    response_serializer=noticias__pb2.PublicacionResponse.SerializeToString,
+            ),
+    }
+    generic_handler = grpc.method_handlers_generic_handler(
+            'noticias.ServicioNoticias', rpc_method_handlers)
+    server.add_generic_rpc_handlers((generic_handler,))
+    server.add_registered_method_handlers('noticias.ServicioNoticias', rpc_method_handlers)
+
+
+ # This class is part of an EXPERIMENTAL API.
+class ServicioNoticias:
+    """Missing associated documentation comment in .proto file."""
+
+    @staticmethod
+    def SuscribirASeccion(request,
+            target,
+            options=(),
+            channel_credentials=None,
+            call_credentials=None,
+            insecure=False,
+            compression=None,
+            wait_for_ready=None,
+            timeout=None,
+            metadata=None):
+        return grpc.experimental.unary_stream(
+            request,
+            target,
+            '/noticias.ServicioNoticias/SuscribirASeccion',
+            noticias__pb2.SuscripcionRequest.SerializeToString,
+            noticias__pb2.Noticia.FromString,
+            options,
+            channel_credentials,
+            insecure,
+            call_credentials,
+            compression,
+            wait_for_ready,
+            timeout,
+            metadata,
+            _registered_method=True)
+
+    @staticmethod
+    def PublicarNoticia(request,
+            target,
+            options=(),
+            channel_credentials=None,
+            call_credentials=None,
+            insecure=False,
+            compression=None,
+            wait_for_ready=None,
+            timeout=None,
+            metadata=None):
+        return grpc.experimental.unary_unary(
+            request,
+            target,
+            '/noticias.ServicioNoticias/PublicarNoticia',
+            noticias__pb2.Noticia.SerializeToString,
+            noticias__pb2.PublicacionResponse.FromString,
             options,
             channel_credentials,
             insecure,

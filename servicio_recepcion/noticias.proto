@@ -2,7 +2,6 @@ syntax = "proto3";
 
 package noticias;
 
-// El formato de la noticia a recibir
 message Noticia {
   int32 id_noticia = 1;
   string titulo = 2;
@@ -12,13 +11,26 @@ message Noticia {
   string fecha = 6;
 }
 
-// Lo que el servicio responde cuando termina de procesar
 message Respuesta {
   bool exito = 1;
   string mensaje = 2;
 }
 
-// El servicio que escucha peticiones
 service ReceptorNoticias {
   rpc EnviarNoticia (Noticia) returns (Respuesta);
+}
+
+message SuscripcionRequest {
+  string cliente_id = 1;
+  int32 id_categoria = 2;
+}
+
+message PublicacionResponse {
+  bool exito = 1;
+  string mensaje = 2;
+}
+
+service ServicioNoticias {
+  rpc SuscribirASeccion (SuscripcionRequest) returns (stream Noticia) {}
+  rpc PublicarNoticia (Noticia) returns (PublicacionResponse) {}
 }
