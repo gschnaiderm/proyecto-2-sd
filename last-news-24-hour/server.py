@@ -38,6 +38,7 @@ def get_db_connection():
 
 def get_news_last_24():
     """Consulta directa a PostgreSQL como respaldo."""
+    print("Consultando microservicio find_news_period...")
     conn = get_db_connection()
     try:
         with conn.cursor(cursor_factory=RealDictCursor) as cur:
@@ -71,6 +72,7 @@ def get_news_from_find_news_period():
         "fecha_inicio": yesterday.isoformat(),
         "fecha_fin": today.isoformat()
     })
+    print("Consultando microservicio find_news_period...")
     url = f"{get_find_news_period_url()}?{query_params}"
 
     try:
