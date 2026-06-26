@@ -31,4 +31,6 @@ Actualmente el proyecto cuenta con múltiples microservicios desacoplados: búsq
 
 ## Problemas Abiertos o Notas
 - Las búsquedas realizan coincidencias precisas por palabras, categorías o contenido usando el motor PostgreSQL Full-Text Search en español.
+- **Incompatibilidad en `delete-news`:** El archivo `delete-news/docker-compose.yml` aún cuenta con un contenedor local de PostgreSQL redundante que colisiona en el puerto `5432` y no se conecta a la red compartida `consorcio-red` ni a la base de datos centralizada.
+
 
