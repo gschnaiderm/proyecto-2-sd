@@ -90,7 +90,45 @@ curl http://localhost:8011/health
 curl -X DELETE "http://localhost:8013/noticias/1?user_id=1"
 ```
 
-## 7. `find-news-by-descriptor` gRPC
+## 7. `new-subscriptions`
+
+### Crear area
+
+```bash
+curl -X POST http://localhost:8030/areas \
+  -H "Content-Type: application/json" \
+  -d '{"category_id":20,"name":"Pruebas de Subscripciones"}'
+```
+
+### Listar areas
+
+```bash
+curl http://localhost:8030/areas
+```
+
+### Suscribir usuario
+
+```bash
+curl -X POST http://localhost:8030/suscribir \
+  -H "Content-Type: application/json" \
+  -d '{"user_id":1,"category_id":20}'
+```
+
+### Desuscribir usuario
+
+```bash
+curl -X DELETE http://localhost:8030/desuscribir \
+  -H "Content-Type: application/json" \
+  -d '{"user_id":1,"category_id":20}'
+```
+
+### Ver suscripciones de un usuario
+
+```bash
+curl http://localhost:8030/suscripciones/1
+```
+
+## 8. `find-news-by-descriptor` gRPC
 
 ### Buscar por descriptor
 
@@ -112,7 +150,7 @@ grpcurl -plaintext \
   localhost:50051 news_search.NewsSearchService/SearchByDescriptor
 ```
 
-## 8. `servicio_envio_noticias` gRPC
+## 9. `servicio_envio_noticias` gRPC
 
 Este servicio tiene streaming. Para probarlo hacen falta dos terminales.
 
@@ -142,5 +180,8 @@ grpcurl -plaintext \
 4. `last-news-24-hour`
 5. `get-news-load-by-area`
 6. `delete-news`
-7. `find-news-by-descriptor`
-8. `servicio_envio_noticias`
+7. `new-subscriptions`
+8. `find-news-by-descriptor`
+9. `servicio_envio_noticias`
+
+Docker compose general de todos los servicios, MD explicativo de testeo de cada servicio
