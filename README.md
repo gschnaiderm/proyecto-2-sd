@@ -51,6 +51,30 @@ A continuación, se detalla la funcionalidad, estructura y cómo desplegar cada 
   docker compose -f get-news-load-by-area/docker-compose.yml up -d --build
   ```
 
+### 6. Borrado de Noticias (`delete-news`)
+- **Funcionalidad:** API REST (Python/FastAPI) que permite a un usuario eliminar una noticia del consorcio, validando previamente que el usuario solicitante (`user_id`) sea el autor original de la misma.
+- **Estructura:** Servidor FastAPI en `server.py`, dependencias en `requirements.txt` y Dockerfile. Cuenta con su propio `docker-compose.yml` que levanta tanto el servicio en el puerto `8000` como una base de datos PostgreSQL local para pruebas.
+- **Despliegue:** (Expone el puerto `8000`):
+  ```bash
+  docker compose -f delete-news/docker-compose.yml up -d --build
+  ```
+
+### 7. Gestión de Suscripciones (`new_subscriptions`)
+- **Funcionalidad:** API REST (Python/FastAPI) para gestionar la suscripción y desuscripción de clientes a áreas temáticas de noticias, además de permitir la creación y el listado de áreas en la base de datos central.
+- **Estructura:** Archivos de código fuente distribuidos de forma plana (`subscribe.py`), junto a su respectivo `Dockerfile`, `requirements.txt` y un archivo `docker-compose.yml` configurado para conectarse a la base de datos central y exponer el puerto `8030`.
+- **Despliegue:** (Requiere la base de datos central iniciada primero. Expone el puerto `8030`):
+  ```bash
+  docker compose -f new_subscriptions/docker-compose.yml up -d --build
+  ```
+
+### 8. Envío de Noticias (`servicio_envio_noticias`)
+- **Funcionalidad:** Servicio de mensajería Pub/Sub gRPC (Python) que permite a los clientes suscribirse a una sección para recibir noticias en tiempo real (streaming asíncrono) y publicar nuevas noticias.
+- **Estructura:** Servidor gRPC en `server.py`, contrato protobuf definido en `noticias.proto`, dependencias en `requirements.txt` y `Dockerfile` (que compila automáticamente los archivos proto al construirse).
+- **Despliegue:** (Expone el puerto `50052` mapeado al puerto gRPC `50051` interno):
+  ```bash
+  docker compose -f servicio_envio_noticias/docker-compose.yml up -d --build
+  ```
+
 ---
 
 ## 🛑 Detener los Servicios
@@ -60,3 +84,4 @@ Para apagar cualquiera de los entornos que utilizan Docker Compose:
 ```bash
 docker compose -f <carpeta>/docker-compose.yml down
 ```
+
