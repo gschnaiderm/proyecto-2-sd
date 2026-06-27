@@ -4,9 +4,8 @@ import psycopg2
 import grpc
 import uvicorn
 
-# Importamos los archivos gRPC SOLO para hablar con Gonzalo
-import noticias_pb2
-import noticias_pb2_grpc
+import os
+import pika
 
 app = FastAPI(title="Microservicio de Recepción", description="API Gateway para periodistas")
 
@@ -45,23 +44,20 @@ def recibir_noticia(noticia: NuevaNoticia):
         
         print(f"[ÉXITO DB] Noticia guardada en la base de datos con ID: {nuevo_id}")
         
-        print("Avisando al servicio de distribución de noticias...")
+        print("Avisando al servicio de distribución de noticias vía RabbitMQ...")
         try:
-            with grpc.insecure_channel('servicio_noticias:50051') as canal_gonza:
-                stub_gonza = noticias_pb2_grpc.ServicioNoticiasStub(canal_gonza)
-                
-                # Armamos el paquete gRPC con los datos que llegaron del JSON
-                noticia_a_repartir = noticias_pb2.Noticia(
-                    id_noticia=nuevo_id,
-                    titulo=noticia.titulo,
-                    id_autor=noticia.id_autor,
-                    id_categoria=noticia.id_categoria,
-                    texto=noticia.texto,
-                    fecha="" 
-                )
-                
-                respuesta_gonza = stub_gonza.PublicarNoticia(noticia_a_repartir)
-                print(f"[ÉXITO DISTRIBUCIÓN] {respuesta_gonza.mensaje}")
+            rabbitmq_host = os.environ.get("RABBITMQ_HOST", "rabbitmq")
+            connection = pika.BlockingConnection(pika.ConnectionParameters(host=rabbitmq_host))
+            channel = connection.channel()
+            
+            channel.exchange_declare(exchange='noticias_exchange', exchange_type='fanout')
+            
+            # Solo enviamos el ID de la noticia, como acordamos
+            mensaje = str(nuevo_id)
+            channel.basic_publish(exchange='noticias_exchange', routing_key='', body=mensaje)
+            
+            print(f"[ÉXITO DISTRIBUCIÓN] Noticia ID {nuevo_id} publicada en RabbitMQ")
+            connection.close()
                 
         except Exception as error_distribucion:
             print(f"[AVISO] La noticia se guardó, pero falló la distribución: {error_distribucion}")

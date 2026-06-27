@@ -4,6 +4,9 @@ import time
 import logging
 import queue
 import threading
+import os
+import pika
+import psycopg2
 
 import noticias_pb2
 # pyrefly: ignore [missing-import]
@@ -47,25 +50,75 @@ class ServicioNoticiasServicer(noticias_pb2_grpc.ServicioNoticiasServicer):
                     self.suscriptores[id_categoria].remove(q)
             logging.info(f"Cliente {cliente_id} desconectado de la categoría ID: {id_categoria}")
 
-    def PublicarNoticia(self, request, context):
-        id_categoria = request.id_categoria
-        logging.info(f"Recibida nueva noticia para la categoría ID: {id_categoria} - Titulo: {request.titulo}")
 
-        with self.lock:
-            if id_categoria in self.suscriptores:
-                # Enviar a todos los clientes suscritos a esta sección en esta réplica
-                for q in self.suscriptores[id_categoria]:
-                    q.put(request)
 
-        return noticias_pb2.PublicacionResponse(exito=True, mensaje=f"Noticia enviada a los suscriptores locales de la categoría {id_categoria}")
+def rabbitmq_consumer(servicer):
+    rabbitmq_host = os.environ.get("RABBITMQ_HOST", "rabbitmq")
+    while True:
+        try:
+            connection = pika.BlockingConnection(pika.ConnectionParameters(host=rabbitmq_host))
+            channel = connection.channel()
+            channel.exchange_declare(exchange='noticias_exchange', exchange_type='fanout')
+            
+            result = channel.queue_declare(queue='', exclusive=True)
+            queue_name = result.method.queue
+            
+            channel.queue_bind(exchange='noticias_exchange', queue=queue_name)
+            
+            def callback(ch, method, properties, body):
+                id_noticia = int(body.decode())
+                logging.info(f"Recibido ID de noticia desde RabbitMQ: {id_noticia}")
+                
+                try:
+                    conn = psycopg2.connect(
+                        host=os.getenv("DB_HOST", "db"),
+                        port=os.getenv("DB_PORT", "5432"),
+                        user=os.getenv("DB_USER", "admin"),
+                        password=os.getenv("DB_PASSWORD", "secreta"),
+                        dbname=os.getenv("DB_NAME", "sistema_db")
+                    )
+                    cursor = conn.cursor()
+                    cursor.execute("SELECT title, user_id, category_id, content, created_at FROM news WHERE news_id = %s", (id_noticia,))
+                    row = cursor.fetchone()
+                    
+                    if row:
+                        titulo, id_autor, id_categoria, texto, fecha = row
+                        with servicer.lock:
+                            if id_categoria in servicer.suscriptores:
+                                noti = noticias_pb2.Noticia(
+                                    id_noticia=id_noticia,
+                                    titulo=titulo,
+                                    id_autor=id_autor,
+                                    id_categoria=id_categoria,
+                                    texto=texto,
+                                    fecha=str(fecha)
+                                )
+                                for q in servicer.suscriptores[id_categoria]:
+                                    q.put(noti)
+                    cursor.close()
+                    conn.close()
+                except Exception as e:
+                    logging.error(f"Error consultando BD o enviando a clientes: {e}")
+
+            channel.basic_consume(queue=queue_name, on_message_callback=callback, auto_ack=True)
+            logging.info("RabbitMQ Consumer esperando mensajes en background...")
+            channel.start_consuming()
+            
+        except Exception as e:
+            logging.error(f"Error en RabbitMQ (reintentando en 5s): {e}")
+            time.sleep(5)
 
 def serve():
     server = grpc.server(futures.ThreadPoolExecutor(max_workers=10))
     servicer = ServicioNoticiasServicer()
+    
+    # Iniciar hilo de RabbitMQ
+    threading.Thread(target=rabbitmq_consumer, args=(servicer,), daemon=True).start()
+    
     noticias_pb2_grpc.add_ServicioNoticiasServicer_to_server(servicer, server)
     server.add_insecure_port('[::]:50051')
     server.start()
-    logging.info("Servicio de Noticias (Pub/Sub via gRPC) escuchando en el puerto 50051...")
+    logging.info("Servicio de Noticias (Suscripciones via gRPC) escuchando en el puerto 50051...")
     server.wait_for_termination()
 
 if __name__ == '__main__':
