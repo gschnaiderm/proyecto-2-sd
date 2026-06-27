@@ -40,7 +40,9 @@ def get_news_by_period(fecha_inicio: date, fecha_fin: date):
                 SELECT n.title, n.content, a.name AS category_name, n.created_at
                 FROM news n
                 JOIN areas a ON n.category_id = a.category_id
-                WHERE n.created_at::date BETWEEN %s AND %s
+                WHERE n.is_deleted = FALSE
+                AND a.is_deleted = FALSE
+                AND n.created_at::date BETWEEN %s AND %s
                 ORDER BY n.created_at DESC
             """
             cur.execute(query, (fecha_inicio, fecha_fin))
