@@ -186,7 +186,7 @@ services:
             DB_NAME: sistema_db
             DB_PORT: 5432
         ports:
-            - "8030:8030"
+            - "8030:8000"
         deploy:
             mode: replicated
             replicas: 2
