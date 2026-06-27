@@ -201,6 +201,20 @@ services:
             - consorcio_net
 
     # -----------------------------------------------------
+    # SERVICIO 9: RabbitMQ (Broker)
+    # -----------------------------------------------------
+    rabbitmq:
+        image: rabbitmq:3-management
+        container_name: consorcio_rabbitmq
+        ports:
+            - "5672:5672"
+            - "15672:15672"
+        deploy:
+            placement:
+                constraints: [ node.role == manager ]
+        networks:
+            - consorcio_net
+    # -----------------------------------------------------
     # SERVICIO 8: Send News
     # -----------------------------------------------------
     send_news:
@@ -225,21 +239,6 @@ services:
         depends_on:
             - db
             - rabbitmq
-        networks:
-            - consorcio_net
-
-    # -----------------------------------------------------
-    # SERVICIO 9: RabbitMQ (Broker)
-    # -----------------------------------------------------
-    rabbitmq:
-        image: rabbitmq:3-management
-        container_name: consorcio_rabbitmq
-        ports:
-            - "5672:5672"
-            - "15672:15672"
-        deploy:
-            placement:
-                constraints: [ node.role == manager ]
         networks:
             - consorcio_net
 
@@ -275,5 +274,5 @@ services:
 # RED: El túnel privado entre contenedores
 # -----------------------------------------------------
 networks:
-    consorcio_net: 
+    consorcio_net:
         driver: overlay
