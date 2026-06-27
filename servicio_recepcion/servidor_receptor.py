@@ -1,101 +1,85 @@
-import grpc
-from concurrent import futures
+from fastapi import FastAPI, HTTPException
+from pydantic import BaseModel
 import psycopg2
+import grpc
+import uvicorn
+
+# Importamos los archivos gRPC SOLO para hablar con Gonzalo
 import noticias_pb2
 import noticias_pb2_grpc
 
-class ReceptorNoticiasServicer(noticias_pb2_grpc.ReceptorNoticiasServicer):
-    
-    def EnviarNoticia(self, request, context):
-        print(f"\n[+] ¡Llegó una nueva noticia!")
-        print(f"ID Noticia: {request.id_noticia}")
-        print(f"Título: {request.titulo}")
-        print(f"ID Autor: {request.id_autor}")
-        print(f"Categoria: {request.id_categoria}")
-        print(f"Contenido: {request.texto}")
-        print(f"Fecha: {request.fecha}")
-        
-        print("Guardando en la base de datos...")
-        try:
-            conexion = psycopg2.connect(
-                host="host.docker.internal",      
-                database="noticias_db", 
-                user="postgres",       
-                password="admin"       
-            )
-            cursor = conexion.cursor()
-            
-            insert_query = """
-                INSERT INTO news (title, user_id, category_id, content)
-                VALUES (%s, %s, %s, %s)
-                RETURNING news_id;
-            """
-            datos_a_insertar = (request.titulo, request.id_autor, request.id_categoria, request.texto)
-            
-            cursor.execute(insert_query, datos_a_insertar)
-            nuevo_id = cursor.fetchone()[0]
-            
-            conexion.commit()
-            cursor.close()
-            conexion.close()
-            print(f"[ÉXITO] Noticia guardada correctamente con ID: {nuevo_id}")
+app = FastAPI(title="Microservicio de Recepción", description="API Gateway para periodistas")
 
-        except Exception as e:
-            print(f"[ERROR] No se pudo guardar en la base de datos. Detalle: {e}")
-            # Cortamos el flujo acá y devolvemos el error real al cliente
-            return noticias_pb2.Respuesta(
-                exito=False, 
-                mensaje=f"Error interno: No se pudo persistir la noticia en la base de datos centralizada."
-            )
+class NuevaNoticia(BaseModel):
+    titulo: str
+    id_autor: int
+    id_categoria: int
+    texto: str
+
+# Creamos el endpoint
+@app.post("/api/noticias")
+def recibir_noticia(noticia: NuevaNoticia):
+    print(f"Recibiendo nueva noticia: {noticia.titulo}")
+    
+    try:
+        # OJO: Si corrés esto con docker-compose, el host es "db" (el nombre del servicio). 
+        conexion = psycopg2.connect(
+            host="db", 
+            database="noticias_db",
+            user="postgres",
+            password="admin"
+        )
+        cursor = conexion.cursor()
+
+        consulta_sql = """
+            INSERT INTO news (title, user_id, category_id, content)
+            VALUES (%s, %s, %s, %s)
+            RETURNING news_id; 
+        """
         
-        # Hacer llamado gRPC al segundo servicio (Gonzalo_A)
+        cursor.execute(consulta_sql, (noticia.titulo, noticia.id_autor, noticia.id_categoria, noticia.texto))
+        nuevo_id = cursor.fetchone()[0]
+
+        conexion.commit()
+        cursor.close()
+        conexion.close()
+        
+        print(f"[ÉXITO DB] Noticia guardada en la base de datos con ID: {nuevo_id}")
+        
         print("Avisando al servicio de distribución de noticias...")
         try:
-            # Nos conectamos al puerto de Gonzalo (50051)
-            # Nota: En Docker Compose, 'localhost' cambiará al nombre de su contenedor (ej: 'servicio_noticias')
-            with grpc.insecure_channel('localhost:50051') as canal_gonza:
-                # Instanciamos el Stub (control remoto) del servicio de Gonzalo
+            # Acordate: si prueban con docker-compose, acá va 'servicio_noticias:50051'
+            with grpc.insecure_channel('servicio_noticias:50051') as canal_gonza:
                 stub_gonza = noticias_pb2_grpc.ServicioNoticiasStub(canal_gonza)
                 
-                # Armamos el paquete usando la data original, pero inyectando el ID real de Postgres
+                # Armamos el paquete gRPC con los datos que llegaron del JSON
                 noticia_a_repartir = noticias_pb2.Noticia(
                     id_noticia=nuevo_id,
-                    titulo=request.titulo,
-                    id_autor=request.id_autor,
-                    id_categoria=request.id_categoria,
-                    texto=request.texto,
-                    fecha="" # La fecha se autogeneró en la DB, Gonza no la filtra, así que viaja vacía
+                    titulo=noticia.titulo,
+                    id_autor=noticia.id_autor,
+                    id_categoria=noticia.id_categoria,
+                    texto=noticia.texto,
+                    fecha="" 
                 )
                 
-                # Disparamos la función PublicarNoticia de Gonzalo
                 respuesta_gonza = stub_gonza.PublicarNoticia(noticia_a_repartir)
-                print(f"[ÉXITO DISTRIBUCIÓN] Gonzalo respondió: {respuesta_gonza.mensaje}")
+                print(f"[ÉXITO DISTRIBUCIÓN] {respuesta_gonza.mensaje}")
                 
         except Exception as error_distribucion:
-            # Si el servicio de Gonza está apagado, lo atrapamos acá para que nuestro servidor no muera.
-            # OJO: La noticia YA se guardó en la base de datos, así que no frenamos el proceso general.
-            print(f"[AVISO] La noticia se guardó, pero falló el aviso a distribución. Detalle: {error_distribucion}")
+            print(f"[AVISO] La noticia se guardó, pero falló la distribución: {error_distribucion}")
 
-        # Responder al cliente que todo salio bien
-        return noticias_pb2.Respuesta(
-            exito=True, 
-            mensaje=f"La noticia '{request.titulo}' fue recibida y guardada exitosamente con ID {nuevo_id}."
-        )
+        # Le respondemos al cliente
+        return {
+            "exito": True, 
+            "mensaje": "Noticia recibida y procesada correctamente",
+            "id_generado": nuevo_id
+        }
 
-def serve():
-    # Creamos el servidor gRPC con capacidad para 10 hilos concurrentes
-    servidor = grpc.server(futures.ThreadPoolExecutor(max_workers=10))
-    
-    # Vinculamos los trabajadores al servidor
-    noticias_pb2_grpc.add_ReceptorNoticiasServicer_to_server(ReceptorNoticiasServicer(), servidor)
-    
-    # Lo ponemos a escuchar en el puerto 50050 (Estandar para gRPC)
-    puerto = '50050'
-    servidor.add_insecure_port(f'[::]:{puerto}')
-    print(f"Servidor de Recepción de Noticias encendido y escuchando en el puerto {puerto}...")
-    
-    servidor.start()
-    servidor.wait_for_termination()
+    except Exception as e:
+        print(f"[ERROR GENERAL] {e}")
+        raise HTTPException(status_code=500, detail="Error interno del servidor")
 
+# El motor que enciende el servidor
 if __name__ == '__main__':
-    serve()
+    print("Iniciando API Gateway en el puerto 50050...")
+    uvicorn.run(app, host="0.0.0.0", port=50050)
