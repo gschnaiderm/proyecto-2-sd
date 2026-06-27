@@ -22,7 +22,6 @@ def recibir_noticia(noticia: NuevaNoticia):
     print(f"Recibiendo nueva noticia: {noticia.titulo}")
     
     try:
-        # OJO: Si corrés esto con docker-compose, el host es "db" (el nombre del servicio). 
         conexion = psycopg2.connect(
             host="db", 
             database="noticias_db",
@@ -48,7 +47,6 @@ def recibir_noticia(noticia: NuevaNoticia):
         
         print("Avisando al servicio de distribución de noticias...")
         try:
-            # Acordate: si prueban con docker-compose, acá va 'servicio_noticias:50051'
             with grpc.insecure_channel('servicio_noticias:50051') as canal_gonza:
                 stub_gonza = noticias_pb2_grpc.ServicioNoticiasStub(canal_gonza)
                 
