@@ -21,10 +21,10 @@ def recibir_noticia(noticia: NuevaNoticia):
     
     try:
         conexion = psycopg2.connect(
-            host="db", 
-            database="noticias_db",
-            user="postgres",
-            password="admin"
+            host=os.getenv("DB_HOST", "db"),
+            database=os.getenv("DB_NAME", "sistema_db"),
+            user=os.getenv("DB_USER", "admin"),
+            password=os.getenv("DB_PASSWORD", "secreta")
         )
         cursor = conexion.cursor()
 

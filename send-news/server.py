@@ -10,9 +10,9 @@ logging.basicConfig(level=logging.INFO)
 
 # Configuración de entorno
 DB_HOST = os.getenv("DB_HOST", "localhost")
-DB_NAME = os.getenv("DB_NAME", "noticias_db")
-DB_USER = os.getenv("DB_USER", "postgres")
-DB_PASS = os.getenv("DB_PASS", "postgrespassword")
+DB_NAME = os.getenv("DB_NAME", "sistema_db")
+DB_USER = os.getenv("DB_USER", "admin")
+DB_PASS = os.getenv("DB_PASSWORD", "secreta")
 RABBITMQ_HOST = os.environ.get("RABBITMQ_HOST", "localhost")
 
 # Diccionario global para websockets
@@ -112,34 +112,32 @@ async def procesar_mensaje_rabbitmq(message: aio_pika.abc.AbstractIncomingMessag
                     logging.error(f"Error enviando JSON al WS del cliente: {e}")
 
 async def rabbitmq_listener():
-    """Conecta a RabbitMQ y se suscribe al canal global de Sabri."""
-    await asyncio.sleep(5) 
-    try:
-        connection = await aio_pika.connect_robust(f"amqp://guest:guest@{RABBITMQ_HOST}/")
-        channel = await connection.channel()
-        
-        # Mismo exchange 'fanout' que usa Sabrina
-        exchange = await channel.declare_exchange('noticias_exchange', aio_pika.ExchangeType.FANOUT)
-        
-        # Cola exclusiva de esta réplica
-        queue = await channel.declare_queue('', exclusive=True)
-        await queue.bind(exchange)
-        
-        logging.info(f"Conectado a RabbitMQ en {RABBITMQ_HOST}. Escuchando noticias en vivo...")
-        
-        await queue.consume(procesar_mensaje_rabbitmq)
-        await asyncio.Future() 
-    except Exception as e:
-        logging.error(f"Error fatal conectando a RabbitMQ: {e}")
+    """Conecta a RabbitMQ y se suscribe al canal global de Sabri con reintentos."""
+    while True:
+        try:
+            logging.info(f"Intentando conectar a RabbitMQ en {RABBITMQ_HOST}...")
+            connection = await aio_pika.connect_robust(f"amqp://guest:guest@{RABBITMQ_HOST}/")
+            channel = await connection.channel()
+            
+            # Mismo exchange 'fanout' que usa Sabrina
+            exchange = await channel.declare_exchange('noticias_exchange', aio_pika.ExchangeType.FANOUT)
+            
+            # Cola exclusiva de esta réplica
+            queue = await channel.declare_queue('', exclusive=True)
+            await queue.bind(exchange)
+            
+            logging.info(f"Conectado a RabbitMQ en {RABBITMQ_HOST}. Escuchando noticias en vivo...")
+            
+            await queue.consume(procesar_mensaje_rabbitmq)
+            await asyncio.Future() 
+        except Exception as e:
+            logging.error(f"Error conectando a RabbitMQ: {e}. Reintentando en 5 segundos...")
+            await asyncio.sleep(5)
 
 async def main():
     logging.info("Iniciando servicio de distribución de noticias (Optimizadísimo)...")
-    ws_server = websockets.serve(websocket_handler, "0.0.0.0", 8765)
-    
-    await asyncio.gather(
-        ws_server,
-        rabbitmq_listener()
-    )
+    async with websockets.serve(websocket_handler, "0.0.0.0", 8765):
+        await rabbitmq_listener()
 
 if __name__ == "__main__":
     asyncio.run(main())
