@@ -75,7 +75,7 @@ services:
     # -----------------------------------------------------
     find_news_period:
         build:
-            context: ./find-news-period
+            context: ./find-news-by-period
         image: consorcio_find_news_period:latest
         environment:
             DB_HOST: db
