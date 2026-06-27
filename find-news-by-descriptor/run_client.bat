@@ -1,18 +1,22 @@
 @echo off
 :: Desactivar eco para que la consola se vea limpia
-title Cliente de Busqueda gRPC
+title Cliente de Busqueda HTTP
 
-:: Verificar si existe el entorno virtual
-if not exist ".venv" (
-    echo [ERROR] No se encontro la carpeta del entorno virtual (.venv^).
-    echo Por favor, asegurate de que el entorno virtual este creado en la raiz del proyecto.
+:: Verificar si existe el entorno virtual en la raiz del proyecto (carpeta padre) o local
+if exist "..\.venv" (
+    set "VENV_PATH=..\.venv"
+) else if exist ".venv" (
+    set "VENV_PATH=.venv"
+) else (
+    echo [ERROR] No se encontro la carpeta del entorno virtual venv ni en la raiz del proyecto ni en esta carpeta.
+    echo Por favor, asegurate de que el entorno virtual este creado.
     pause
     exit /b 1
 )
 
-echo Iniciando cliente de busqueda gRPC...
+echo Iniciando cliente de busqueda HTTP...
 :: Ejecutamos python directamente desde el entorno virtual pasando la ruta del script.
-:: Esto hace que use todas las librerias instaladas (grpc, protobuf) sin tener que activar el venv en la terminal.
-".venv\Scripts\python.exe" "news_search\client.py"
+:: Como se realizo un refactor plano, el cliente esta directamente en la raiz de este microservicio: "client.py"
+"%VENV_PATH%\Scripts\python.exe" "client.py"
 
 pause

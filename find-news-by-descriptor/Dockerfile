@@ -17,12 +17,11 @@ COPY requirements.txt .
 # --no-cache-dir evita guardar los instaladores descargados, haciendo la imagen mucho más liviana
 RUN pip install --no-cache-dir -r requirements.txt
 
-# 6. Copiamos el código de nuestro microservicio y las firmas de gRPC
+# 6. Copiamos el código de nuestro microservicio
 COPY *.py ./
-COPY protos/ ./protos/
 
-# 7. Informamos a Docker que este contenedor escuchará en el puerto 50051
-EXPOSE 50051
+# 7. Informamos a Docker que este contenedor escuchará en el puerto 8000
+EXPOSE 8000
 
 # 8. El comando que se ejecutará cuando el contenedor arranque
-CMD ["python", "server.py"]
+CMD ["uvicorn", "server:app", "--host", "0.0.0.0", "--port", "8000"]

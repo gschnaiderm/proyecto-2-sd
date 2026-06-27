@@ -75,7 +75,7 @@ services:
     # -----------------------------------------------------
     find_news_period:
         build:
-            context: ./find-news-period
+            context: ./find-news-by-period
         image: consorcio_find_news_period:latest
         environment:
             DB_HOST: db
@@ -186,7 +186,7 @@ services:
             DB_NAME: sistema_db
             DB_PORT: 5432
         ports:
-            - "50051:50051"
+            - "8030:8030"
         deploy:
             mode: replicated
             replicas: 2
@@ -201,21 +201,37 @@ services:
             - consorcio_net
 
     # -----------------------------------------------------
-    # SERVICIO 8: Servicio Envio Noticias
+    # SERVICIO 9: RabbitMQ (Broker)
     # -----------------------------------------------------
-    servicio_envio_noticias:
+    rabbitmq:
+        image: rabbitmq:3-management
+        container_name: consorcio_rabbitmq
+        ports:
+            - "5672:5672"
+            - "15672:15672"
+        deploy:
+            placement:
+                constraints: [ node.role == manager ]
+        networks:
+            - consorcio_net
+
+    # -----------------------------------------------------
+    # SERVICIO 8: Send News
+    # -----------------------------------------------------
+    send_news:
         build:
-            context: ./servicio_envio_noticias
-        image: consorcio_servicio_envio_noticias:latest
+            context: ./send-news
+        image: consorcio_send_news:latest
         environment:
             PYTHONUNBUFFERED: "1"
+            RABBITMQ_HOST: rabbitmq
             DB_HOST: db
             DB_USER: admin
             DB_PASSWORD: secreta
             DB_NAME: sistema_db
             DB_PORT: 5432
         ports:
-            - "50052:50051"
+            - "8765:8765"
         deploy:
             mode: replicated
             replicas: 2
@@ -223,6 +239,35 @@ services:
                 condition: on-failure
         depends_on:
             - db
+            - rabbitmq
+        networks:
+            - consorcio_net
+
+    # -----------------------------------------------------
+    # SERVICIO 10: Servicio Recepción
+    # -----------------------------------------------------
+    servicio_recepcion:
+        build:
+            context: ./servicio_recepcion
+        image: consorcio_servicio_recepcion:latest
+        environment:
+            PYTHONUNBUFFERED: "1"
+            RABBITMQ_HOST: rabbitmq
+            DB_HOST: db
+            DB_USER: admin
+            DB_PASSWORD: secreta
+            DB_NAME: sistema_db
+            DB_PORT: 5432
+        ports:
+            - "50050:50050"
+        deploy:
+            mode: replicated
+            replicas: 1
+            restart_policy:
+                condition: on-failure
+        depends_on:
+            - db
+            - rabbitmq
         networks:
             - consorcio_net
 
@@ -230,5 +275,5 @@ services:
 # RED: El túnel privado entre contenedores
 # -----------------------------------------------------
 networks:
-    consorcio_net: 
+    consorcio_net:
         driver: overlay
