@@ -48,7 +48,7 @@ services:
             DB_NAME: sistema_db
             DB_PORT: 5432
         ports:
-            - "8080:8080"
+            - "8000:8080"
         deploy:
             mode: replicated
             replicas: 2
@@ -200,7 +200,7 @@ services:
             DB_NAME: sistema_db
             DB_PORT: 5432
         ports:
-            - "8030:8000"
+            - "8006:8000"
         deploy:
             mode: replicated
             replicas: 2
@@ -230,7 +230,7 @@ services:
             DB_NAME: sistema_db
             DB_PORT: 5432
         ports:
-            - "8765:8765"
+            - "8007:8765"
         deploy:
             mode: replicated
             replicas: 2
@@ -258,7 +258,7 @@ services:
             DB_NAME: sistema_db
             DB_PORT: 5432
         ports:
-            - "50050:50050"
+            - "8008:50050"
         deploy:
             mode: replicated
             replicas: 2
