@@ -37,16 +37,31 @@ echo "Asegúrate de que el stack de Docker Swarm o Docker Compose esté corriend
 print_step "1. [Area Manager] Creando nueva área: 'DevOps Testing'"
 AREA_NAME="DevOps Testing"
 USER_ID=1
-
-AREA_RESPONSE=$(curl -s -X POST http://$HOST_IP:8080/areas \
+AREA_RESPONSE=$(curl -s -w "%{http_code}" -o /tmp/area_res.json -X POST http://$HOST_IP:8080/areas \
   -H "Content-Type: application/json" \
   -d "{\"name\": \"$AREA_NAME\", \"user_id\": $USER_ID}")
-
-# Extraer el category_id generado dinámicamente
-CATEGORY_ID=$(echo $AREA_RESPONSE | jq -r '.category_id')
-
+# Leer el HTTP Status Code y la respuesta
+HTTP_STATUS="${AREA_RESPONSE}"
+RESPONSE_BODY=$(cat /tmp/area_res.json)
+if [ "$HTTP_STATUS" -eq 409 ]; then
+    echo -e "${YELLOW}El área '$AREA_NAME' ya existe en la base de datos (borrada lógicamente).${NC}"
+    read -p "¿Deseas utilizar un nombre aleatorio para esta prueba (ej: '$AREA_NAME $RANDOM')? (y/n): " RESP
+    if [ "$RESP" = "y" ] || [ "$RESP" = "Y" ]; then
+        AREA_NAME="DevOps Testing $RANDOM"
+        echo "Intentando crear con nuevo nombre: '$AREA_NAME'..."
+        RESPONSE_BODY=$(curl -s -X POST http://$HOST_IP:8080/areas \
+          -H "Content-Type: application/json" \
+          -d "{\"name\": \"$AREA_NAME\", \"user_id\": $USER_ID}")
+        CATEGORY_ID=$(echo $RESPONSE_BODY | jq -r '.category_id')
+    else
+        echo -e "${RED}Test abortado debido a conflicto de nombre único.${NC}"
+        exit 1
+    fi
+else
+    CATEGORY_ID=$(echo $RESPONSE_BODY | jq -r '.category_id')
+fi
 if [ "$CATEGORY_ID" == "null" ] || [ -z "$CATEGORY_ID" ]; then
-    echo -e "${RED}Fallo al crear el área. Respuesta: $AREA_RESPONSE${NC}"
+    echo -e "${RED}Fallo al crear el área. Respuesta: $RESPONSE_BODY${NC}"
     exit 1
 else
     echo -e "${GREEN}Éxito. Área '$AREA_NAME' creada con ID: $CATEGORY_ID${NC}"
