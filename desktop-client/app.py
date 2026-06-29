@@ -269,7 +269,7 @@ class App(tk.Tk):
 
     def create_realtime_panel(self, parent):
         frame = tk.LabelFrame(parent, text=" Noticias en Vivo (WS) ", font=('Arial', 10, 'bold'), padx=10, pady=10)
-        frame.pack(side=tk.RIGHT, fill=tk.BOTH, expand=False, width=340, padx=(10, 0))
+        frame.pack(side=tk.RIGHT, fill=tk.BOTH, expand=False, padx=(10, 0))
         
         # Credentials Form
         f_fields = tk.Frame(frame)
@@ -291,7 +291,7 @@ class App(tk.Tk):
         
         # Log Output for WS
         tk.Label(frame, text="Feed de Noticias Recibidas:", font=('Arial', 9, 'bold')).pack(anchor="w", pady=(5, 2))
-        self.ws_log_area = scrolledtext.ScrolledText(frame, height=22, bg="#111827", fg="#f59e0b", font=('Consolas', 9))
+        self.ws_log_area = scrolledtext.ScrolledText(frame, height=22, width=40, bg="#111827", fg="#f59e0b", font=('Consolas', 9))
         self.ws_log_area.pack(fill=tk.BOTH, expand=True)
         self.ws_log_area.insert(tk.END, "Desconectado. Ingresa credenciales y haz clic en Conectar WS...\n")
 
