@@ -81,14 +81,14 @@ class App(tk.Tk):
         frame = ttk.Frame(self.notebook)
         self.notebook.add(frame, text=" Áreas Temáticas ")
         
-        tk.Label(frame, text="Nombre del Área:").grid(row=0, column=0, pady=10, padx=10, sticky="e")
-        name_entry = tk.Entry(frame, width=30)
-        name_entry.grid(row=0, column=1, pady=10, sticky="w")
+        tk.Label(frame, text="Nombre del Área:").grid(row=0, column=0, pady=(20, 10), padx=(20, 10), sticky="e")
+        name_entry = tk.Entry(frame, width=35)
+        name_entry.grid(row=0, column=1, pady=(20, 10), padx=(0, 20), sticky="w")
         
-        tk.Label(frame, text="ID Autor:").grid(row=1, column=0, pady=10, padx=10, sticky="e")
-        uid_entry = tk.Entry(frame, width=30)
+        tk.Label(frame, text="ID Autor:").grid(row=1, column=0, pady=10, padx=(20, 10), sticky="e")
+        uid_entry = tk.Entry(frame, width=35)
         uid_entry.insert(0, "1")
-        uid_entry.grid(row=1, column=1, pady=10, sticky="w")
+        uid_entry.grid(row=1, column=1, pady=10, padx=(0, 20), sticky="w")
         
         def create():
             self.api_call('areaManager', '/areas', 'POST', {"name": name_entry.get(), "user_id": int(uid_entry.get() or 0)})
@@ -97,21 +97,24 @@ class App(tk.Tk):
             name = urllib.parse.quote(name_entry.get())
             self.api_call('areaManager', f'/areas/{name}', 'DELETE', {"user_id": int(uid_entry.get() or 0)})
             
-        tk.Button(frame, text="Crear Área", command=create, width=15, bg="#3b82f6", fg="white").grid(row=2, column=0, pady=20, padx=10)
-        tk.Button(frame, text="Eliminar Área", command=delete, width=15, bg="#ef4444", fg="white").grid(row=2, column=1, pady=20, sticky="w")
+        btn_frame = tk.Frame(frame)
+        btn_frame.grid(row=2, column=0, columnspan=2, pady=20)
+        
+        tk.Button(btn_frame, text="Crear Área", command=create, width=15, bg="#3b82f6", fg="white").pack(side=tk.LEFT, padx=10)
+        tk.Button(btn_frame, text="Eliminar Área", command=delete, width=15, bg="#ef4444", fg="white").pack(side=tk.LEFT, padx=10)
 
     def create_subs_tab(self):
         frame = ttk.Frame(self.notebook)
         self.notebook.add(frame, text=" Suscripciones ")
         
-        tk.Label(frame, text="ID Categoría:").grid(row=0, column=0, pady=10, padx=10, sticky="e")
-        cat_entry = tk.Entry(frame, width=30)
-        cat_entry.grid(row=0, column=1, pady=10, sticky="w")
+        tk.Label(frame, text="ID Categoría:").grid(row=0, column=0, pady=(20, 10), padx=(20, 10), sticky="e")
+        cat_entry = tk.Entry(frame, width=35)
+        cat_entry.grid(row=0, column=1, pady=(20, 10), padx=(0, 20), sticky="w")
         
-        tk.Label(frame, text="ID Usuario:").grid(row=1, column=0, pady=10, padx=10, sticky="e")
-        uid_entry = tk.Entry(frame, width=30)
+        tk.Label(frame, text="ID Usuario:").grid(row=1, column=0, pady=10, padx=(20, 10), sticky="e")
+        uid_entry = tk.Entry(frame, width=35)
         uid_entry.insert(0, "1")
-        uid_entry.grid(row=1, column=1, pady=10, sticky="w")
+        uid_entry.grid(row=1, column=1, pady=10, padx=(0, 20), sticky="w")
         
         def sub():
             self.api_call('subscriptions', '/suscribir', 'POST', {"category_id": int(cat_entry.get() or 0), "user_id": int(uid_entry.get() or 0)})
@@ -119,29 +122,32 @@ class App(tk.Tk):
         def unsub():
             self.api_call('subscriptions', '/desuscribir', 'DELETE', {"category_id": int(cat_entry.get() or 0), "user_id": int(uid_entry.get() or 0)})
             
-        tk.Button(frame, text="Suscribir", command=sub, width=15, bg="#3b82f6", fg="white").grid(row=2, column=0, pady=20, padx=10)
-        tk.Button(frame, text="Desuscribir", command=unsub, width=15, bg="#ef4444", fg="white").grid(row=2, column=1, pady=20, sticky="w")
+        btn_frame = tk.Frame(frame)
+        btn_frame.grid(row=2, column=0, columnspan=2, pady=20)
+        
+        tk.Button(btn_frame, text="Suscribir", command=sub, width=15, bg="#3b82f6", fg="white").pack(side=tk.LEFT, padx=10)
+        tk.Button(btn_frame, text="Desuscribir", command=unsub, width=15, bg="#ef4444", fg="white").pack(side=tk.LEFT, padx=10)
 
     def create_news_tab(self):
         frame = ttk.Frame(self.notebook)
         self.notebook.add(frame, text=" Publicar Noticia ")
         
-        tk.Label(frame, text="Título:").grid(row=0, column=0, pady=5, padx=10, sticky="e")
+        tk.Label(frame, text="Título:").grid(row=0, column=0, pady=(20, 10), padx=(20, 10), sticky="e")
         title_entry = tk.Entry(frame, width=50)
-        title_entry.grid(row=0, column=1, pady=5, sticky="w")
+        title_entry.grid(row=0, column=1, pady=(20, 10), padx=(0, 20), sticky="w")
         
-        tk.Label(frame, text="ID Categoría:").grid(row=1, column=0, pady=5, padx=10, sticky="e")
+        tk.Label(frame, text="ID Categoría:").grid(row=1, column=0, pady=10, padx=(20, 10), sticky="e")
         cat_entry = tk.Entry(frame, width=50)
-        cat_entry.grid(row=1, column=1, pady=5, sticky="w")
+        cat_entry.grid(row=1, column=1, pady=10, padx=(0, 20), sticky="w")
         
-        tk.Label(frame, text="ID Autor:").grid(row=2, column=0, pady=5, padx=10, sticky="e")
+        tk.Label(frame, text="ID Autor:").grid(row=2, column=0, pady=10, padx=(20, 10), sticky="e")
         uid_entry = tk.Entry(frame, width=50)
         uid_entry.insert(0, "1")
-        uid_entry.grid(row=2, column=1, pady=5, sticky="w")
+        uid_entry.grid(row=2, column=1, pady=10, padx=(0, 20), sticky="w")
         
-        tk.Label(frame, text="Contenido:").grid(row=3, column=0, pady=5, padx=10, sticky="ne")
+        tk.Label(frame, text="Contenido:").grid(row=3, column=0, pady=10, padx=(20, 10), sticky="ne")
         txt = tk.Text(frame, height=6, width=50)
-        txt.grid(row=3, column=1, pady=5, sticky="w")
+        txt.grid(row=3, column=1, pady=10, padx=(0, 20), sticky="w")
         
         def pub():
             payload = {
@@ -152,37 +158,37 @@ class App(tk.Tk):
             }
             self.api_call('publish', '/api/noticias', 'POST', payload)
             
-        tk.Button(frame, text="Publicar Noticia", command=pub, width=20, bg="#10b981", fg="white").grid(row=4, column=1, pady=15, sticky="w")
+        tk.Button(frame, text="Publicar Noticia", command=pub, width=20, bg="#10b981", fg="white").grid(row=4, column=0, columnspan=2, pady=20)
 
     def create_queries_tab(self):
         frame = ttk.Frame(self.notebook)
         self.notebook.add(frame, text=" Consultas Generales ")
         
         # Load
-        tk.Button(frame, text="Ver Carga por Área", command=lambda: self.api_call('getLoad', '/api/news-load', 'GET'), width=25, bg="#3b82f6", fg="white").grid(row=0, column=0, pady=10, padx=10, sticky="w")
+        tk.Button(frame, text="Ver Carga por Área", command=lambda: self.api_call('getLoad', '/api/news-load', 'GET'), width=25, bg="#3b82f6", fg="white").grid(row=0, column=0, pady=(20, 10), padx=(20, 10), sticky="w")
         
         # Descriptor
-        desc_entry = tk.Entry(frame, width=25)
-        desc_entry.grid(row=1, column=1, pady=10, padx=5, sticky="w")
-        tk.Button(frame, text="Buscar por Descriptor ->", command=lambda: self.api_call('findDescriptor', f'/api/news-descriptor?descriptor={urllib.parse.quote(desc_entry.get())}', 'GET'), width=25, bg="#3b82f6", fg="white").grid(row=1, column=0, pady=10, padx=10, sticky="w")
+        desc_entry = tk.Entry(frame, width=35)
+        desc_entry.grid(row=1, column=1, pady=10, padx=(0, 20), sticky="w")
+        tk.Button(frame, text="Buscar por Descriptor ->", command=lambda: self.api_call('findDescriptor', f'/api/news-descriptor?descriptor={urllib.parse.quote(desc_entry.get())}', 'GET'), width=25, bg="#3b82f6", fg="white").grid(row=1, column=0, pady=10, padx=(20, 10), sticky="w")
         
         # 24h
-        uid_entry = tk.Entry(frame, width=25)
+        uid_entry = tk.Entry(frame, width=35)
         uid_entry.insert(0, "1")
-        uid_entry.grid(row=2, column=1, pady=10, padx=5, sticky="w")
-        tk.Button(frame, text="Últimas 24h (UserID) ->", command=lambda: self.api_call('last24h', f'/api/news-last-24h?user_id={uid_entry.get()}', 'GET'), width=25, bg="#3b82f6", fg="white").grid(row=2, column=0, pady=10, padx=10, sticky="w")
+        uid_entry.grid(row=2, column=1, pady=10, padx=(0, 20), sticky="w")
+        tk.Button(frame, text="Últimas 24h (UserID) ->", command=lambda: self.api_call('last24h', f'/api/news-last-24h?user_id={uid_entry.get()}', 'GET'), width=25, bg="#3b82f6", fg="white").grid(row=2, column=0, pady=10, padx=(20, 10), sticky="w")
         
         # Period
         f_period = tk.Frame(frame)
-        f_period.grid(row=3, column=1, pady=10, sticky="w")
+        f_period.grid(row=3, column=1, pady=10, padx=(0, 20), sticky="w")
         tk.Label(f_period, text="Inicio (YYYY-MM-DD):").pack(side=tk.LEFT)
         start_entry = tk.Entry(f_period, width=12)
         start_entry.pack(side=tk.LEFT, padx=5)
-        tk.Label(f_period, text="Fin:").pack(side=tk.LEFT)
+        tk.Label(f_period, text="Fin:").pack(side=tk.LEFT, padx=(10, 0))
         end_entry = tk.Entry(f_period, width=12)
         end_entry.pack(side=tk.LEFT, padx=5)
         
-        tk.Button(frame, text="Buscar Por Período ->", command=lambda: self.api_call('findPeriod', f'/api/news-period?fecha_inicio={start_entry.get()}&fecha_fin={end_entry.get()}', 'GET'), width=25, bg="#3b82f6", fg="white").grid(row=3, column=0, pady=10, padx=10, sticky="w")
+        tk.Button(frame, text="Buscar Por Período ->", command=lambda: self.api_call('findPeriod', f'/api/news-period?fecha_inicio={start_entry.get()}&fecha_fin={end_entry.get()}', 'GET'), width=25, bg="#3b82f6", fg="white").grid(row=3, column=0, pady=10, padx=(20, 10), sticky="w")
 
 if __name__ == "__main__":
     app = App()
